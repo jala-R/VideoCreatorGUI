@@ -87,9 +87,14 @@ func ScriptInputSubmit(w fyne.Window) func() {
 	}
 }
 
-func ConvertVoice(script *widget.Entry, locale string, platform string, profile string, voice string) func() {
+func ConvertVoice(script *widget.Entry, locale string, platform *string, profile *string, voice *string) func() {
 	return func() {
-
+		//get the key
+		//create instanse
+		//get script
+		//marshall it
+		//trigger go routine for each sentences with channel
+		fmt.Println(locale, *platform, *profile, *voice)
 	}
 }
 

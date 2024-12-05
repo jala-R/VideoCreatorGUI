@@ -17,6 +17,7 @@ const (
 	JSONIMAGES         = "image_names"
 	JSONAUDIOS         = "audio_name"
 	APIURL             = "api_url"
+	TRANSLATIONAPIURL  = "translation_api_url"
 )
 
 var (
