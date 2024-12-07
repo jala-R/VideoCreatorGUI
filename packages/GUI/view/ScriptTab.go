@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	apiclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/controller"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/model"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/view/types"
@@ -60,30 +61,28 @@ func createProcessedScriptPage(locale string) fyne.CanvasObject {
 	})
 
 	voiceProfile := widget.NewSelect(profile, func(s string) {
-		//make api call to get the key
-		key := "sk_1a1f26976d71ca36e4321f7c4c138cfef1bc62c3542ae26d"
-		//create voice client and get all voice names
-		voiceClientInst := voiceclient.VoiceClientDir[platform]
-		voices.Options = voiceClientInst.GetVoices(key)
 		profileOption = s
+		key := apiclient.GetKey(platform, profileOption)
+		voiceClientInst := voiceclient.VoiceClientDir[platform].New()
+		voices.Options = voiceClientInst.GetVoices(key)
+
 	})
+	statusLabel := widget.NewLabel("Not started")
 
 	form := widget.NewForm(
 		widget.NewFormItem("", script),
 		widget.NewFormItem("Voice Platform", widget.NewSelect(voiceclient.GetRegistedPlatforms(), func(s string) {
-			//apiclinet call to get profiles in his platform
-			voiceProfile.Options = []string{
-				s + " profile 1",
-				s + " profile 2",
-				s + " profile 3",
-			}
 			platform = s
+			//apiclinet call to get profiles in his platform
+			voiceProfile.Options = apiclient.ListProfileOnPlatform(platform)
+
 		})),
 		widget.NewFormItem("Voice Profile", voiceProfile),
 		widget.NewFormItem("Voices", voices),
+		widget.NewFormItem("Status", statusLabel),
 	)
 
-	form.OnSubmit = controller.ConvertVoice(script, locale, &platform, &profileOption, &voice)
+	form.OnSubmit = controller.ConvertVoice(script, locale, &platform, &profileOption, &voice, statusLabel)
 	return form
 }
 

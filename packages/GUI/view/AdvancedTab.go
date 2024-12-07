@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/controller"
+	voiceclient "github.com/jala-R/VideoAutomatorGUI/packages/VoiceClient"
 )
 
 func advanceTabGUI() fyne.CanvasObject {
@@ -15,11 +16,11 @@ func advanceTabGUI() fyne.CanvasObject {
 }
 
 func addKeyTab() fyne.CanvasObject {
-	platformOptions := widget.NewSelect([]string{"11 labs", "Play HT"}, controller.PlatformSelectionForKeyAddition)
-	profileOptions := []string{"abc", "deaf", "sdav", "dbfv"}
+	profileOptions := []string{}
 	profileSelection := widget.NewSelectEntry(profileOptions)
+	platformOptions := widget.NewSelect(voiceclient.GetRegistedPlatforms(), controller.PlatformSelectionForKeyAddition(profileSelection))
 
-	profileSelection.OnChanged = controller.ChangeProfileKeyAddtion(profileSelection, profileOptions)
+	profileSelection.OnChanged = controller.ChangeProfileKeyAddtion(profileSelection)
 
 	keyEntry := createSingleEntry("Enter key", controller.KeyEntryChange)
 

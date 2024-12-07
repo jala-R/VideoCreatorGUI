@@ -1,21 +1,49 @@
 package controller
 
 import (
-	"fmt"
-
 	"fyne.io/fyne/v2/widget"
+	apiclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/model"
+	"github.com/jala-R/VideoAutomatorGUI/packages/status"
 )
 
-func PlatformSelectionForKeyAddition(s string) {
-
+func PlatformSelectionForKeyAddition(profile *widget.SelectEntry) func(s string) {
+	return func(s string) {
+		temp := apiclient.ListProfileOnPlatform(s)
+		profile.SetOptions(temp)
+		model.AddToDb(model.PROFILES, temp)
+		model.AddToDb(model.PLATFORMADD, s)
+	}
 }
 
 func KeyEntryChange(s string) {
-
+	model.AddToDb(model.KEYADD, s)
 }
 
 func AddKeySubmit() {
+	var keys = []string{model.PLATFORMADD, model.PROFILEADD, model.KEYADD}
+	var values = [3]string{}
+
+	for i, key := range keys {
+		val := model.QueryDB(key)
+		if val == nil {
+			return
+		}
+
+		temp := val.(string)
+		if temp == "" {
+			return
+		}
+		values[i] = temp
+	}
+
+	for _, key := range keys {
+		model.AddToDb(key, nil)
+	}
+
+	apiclient.AddKey(values[0], values[1], values[2])
+
+	status.Pop()
 
 }
 
@@ -31,8 +59,14 @@ func ConfigSubmit() {
 
 }
 
-func ChangeProfileKeyAddtion(entry *widget.SelectEntry, options []string) func(s string) {
+func ChangeProfileKeyAddtion(entry *widget.SelectEntry) func(s string) {
 	return func(s string) {
+		val := model.QueryDB(model.PROFILES)
+		options := []string{}
+		if val != nil {
+			options, _ = val.([]string)
+		}
+
 		var filterOptions = []string{}
 
 		for _, option := range options {
@@ -43,7 +77,7 @@ func ChangeProfileKeyAddtion(entry *widget.SelectEntry, options []string) func(s
 
 		entry.SetOptions(filterOptions)
 		entry.ActionItem.Show()
-		fmt.Println(s)
+		model.AddToDb(model.PROFILEADD, s)
 	}
 }
 

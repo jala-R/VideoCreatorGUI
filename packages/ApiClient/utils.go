@@ -2,6 +2,7 @@ package apiclient
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -36,6 +37,8 @@ func getWavDuration(filename string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
+	defer file.Close()
+
 	decoder := wav.NewDecoder(file)
 
 	if !decoder.IsValidFile() {
@@ -46,6 +49,8 @@ func getWavDuration(filename string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	fmt.Println(filename, dur)
 
 	return dur.Seconds(), nil
 }

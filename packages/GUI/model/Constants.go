@@ -15,9 +15,18 @@ const (
 	TRANSLATIONURL     = "trnaslation_url"
 	JSONPROJECTNAME    = "project_name"
 	JSONIMAGES         = "image_names"
-	JSONAUDIOS         = "audio_name"
+	JSONAUDIOSTIMES    = "audio_timings"
+	JSONAUDIONAMES     = "audio_names"
 	APIURL             = "api_url"
 	TRANSLATIONAPIURL  = "translation_api_url"
+	PLATFORMADD        = "add_platform"
+	PROFILEADD         = "add_profile"
+	KEYADD             = "add_key"
+	PROFILES           = "add_platform_profile"
+	SENTENCEGAP        = "db_sentence_gap"
+	PARAGAP            = "db_para_gap"
+	JSONPARAGAP        = "para_gap"
+	JSONSENTENCEGAP    = "sentence_gap"
 )
 
 var (

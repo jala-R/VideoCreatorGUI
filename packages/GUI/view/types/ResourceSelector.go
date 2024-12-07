@@ -53,10 +53,12 @@ func (folder *FolderType) onSelect(label *widget.Label) func(fyne.ListableURI, e
 			return
 		}
 
-		label.SetText(url.Path())
-		label.Show()
+		if url != nil {
+			label.SetText(url.Path())
+			label.Show()
 
-		folder.trigger(url.Path())
+			folder.trigger(url.Path())
+		}
 
 	}
 }

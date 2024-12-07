@@ -26,7 +26,7 @@ func (obj *ElevnLabsClient) New() IVoiceConversion {
 
 func (obj *ElevnLabsClient) GetVoices(key string) []string {
 	if obj.voiceKey != nil {
-		return getVoiceOnly(obj.voiceKey)
+		return getVoiceOnlyElevenLabs(obj.voiceKey)
 	}
 	obj.apiKey = key
 	url := "https://api.elevenlabs.io/v1/voices"
@@ -58,12 +58,12 @@ func (obj *ElevnLabsClient) GetVoices(key string) []string {
 		return nil
 	}
 
-	obj.voiceKey = getAllVoiceDetails(body)
+	obj.voiceKey = getAllVoiceDetailsElevenLabs(body)
 
-	return getVoiceOnly(obj.voiceKey)
+	return getVoiceOnlyElevenLabs(obj.voiceKey)
 }
 
-func getAllVoiceDetails(body []byte) [][]string {
+func getAllVoiceDetailsElevenLabs(body []byte) [][]string {
 	var voiceKey = [][]string{}
 	var responseMap = map[string]any{}
 
@@ -98,7 +98,7 @@ func getAllVoiceDetails(body []byte) [][]string {
 
 }
 
-func getVoiceOnly(voiceKey [][]string) []string {
+func getVoiceOnlyElevenLabs(voiceKey [][]string) []string {
 	var ans = []string{}
 	for _, temp := range voiceKey {
 		ans = append(ans, temp[0])

@@ -14,5 +14,8 @@ func init() {
 }
 
 func HandleError(err error) {
-	ErrorBox.SetText(fmt.Errorf("error occured : %w", err).Error())
+	fmt.Println(err)
+	prevError := ErrorBox.Text
+	errorMessage := fmt.Sprintf("%s\n%s", fmt.Errorf("error occured : %w", err).Error(), prevError)
+	ErrorBox.SetText(errorMessage)
 }

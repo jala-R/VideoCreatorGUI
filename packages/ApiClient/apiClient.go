@@ -29,7 +29,7 @@ import (
 //Add key
 
 func init() {
-	model.AddToDb(model.APIURL, "192.168.29.2:8000")
+	model.AddToDb(model.APIURL, "192.168.29.2:4000")
 }
 
 func AddKey(platform, profile, newKey string) {
@@ -90,7 +90,7 @@ func AddProfile(platform, newProfile string) {
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		errorhandling.HandleError(fmt.Errorf("rotate key status code %d, message %s", resp.StatusCode, resp.Status))
+		errorhandling.HandleError(fmt.Errorf("add status code %d, message %s", resp.StatusCode, resp.Status))
 	}
 
 }
@@ -203,7 +203,6 @@ func ListProfileOnPlatform(platform string) []string {
 		errorhandling.HandleError(err)
 		return nil
 	}
-
 	return respUnmarshallJson["data"]
 
 }
@@ -246,6 +245,8 @@ func CreateVideoProject() {
 		return
 	}
 
+	fmt.Println(string(payload))
+
 	url := getUrl()
 	if url == "" {
 		errorhandling.HandleError(errors.New("no url set"))
@@ -265,6 +266,12 @@ func CreateVideoProject() {
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
 		errorhandling.HandleError(err)
+		return
+	}
+
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		body, _ := io.ReadAll(response.Body)
+		errorhandling.HandleError(fmt.Errorf("error with create project status: %d msg :%s", response.StatusCode, string(body)))
 	}
 
 	fmt.Println("writing to the file")
@@ -313,6 +320,18 @@ func createPayloadForVideoProject() []byte {
 		errorhandling.HandleError(errors.New("project name not string"))
 	}
 
+	val = model.QueryDB(model.SENTENCEGAP)
+	sentenceGap := 0.0
+	if val != nil {
+		sentenceGap, _ = val.(float64)
+	}
+
+	val = model.QueryDB(model.PARAGAP)
+	paraGap := 0.0
+	if val != nil {
+		paraGap, _ = val.(float64)
+	}
+
 	val = model.QueryDB(model.IMAGEFOLDER)
 	if val == nil {
 		errorhandling.HandleError(errors.New("image folder name not set"))
@@ -356,7 +375,7 @@ func createPayloadForVideoProject() []byte {
 
 	//get all audio folder sorted
 
-	var audioFiles []string
+	var audioFiles = [][]string{}
 	dirs, err = os.ReadDir(reuseAudio)
 	if err != nil {
 		errorhandling.HandleError(fmt.Errorf("images folder error %w", err))
@@ -398,14 +417,20 @@ func createPayloadForVideoProject() []byte {
 	for _, fileInd := range audioFileInInt {
 		fileName := fmt.Sprintf("%d.%d.wav", fileInd[0], fileInd[1])
 		fullFileName := filepath.Join(reuseAudio, fileName)
+		for len(audioFiles) < fileInd[0] {
+			audioFiles = append(audioFiles, []string{})
+		}
+		for len(audioFiles[fileInd[0]-1]) < fileInd[1] {
+			audioFiles[fileInd[0]-1] = append(audioFiles[fileInd[0]-1], "")
+		}
 
-		audioFiles = append(audioFiles, fullFileName)
+		audioFiles[fileInd[0]-1][fileInd[1]-1] = fullFileName
 	}
 
-	var audioTimings = make([]float64, len(audioFiles))
+	var audioTimings = make([][]float64, len(audioFiles))
 
 	for i, filename := range audioFiles {
-		duration, err := getWavDuration(filename)
+		duration, err := getWavDurationPara(filename)
 		if err != nil {
 			errorhandling.HandleError(err)
 			return nil
@@ -416,7 +441,10 @@ func createPayloadForVideoProject() []byte {
 	var mp = map[string]any{}
 	mp[model.JSONPROJECTNAME] = projectName
 	mp[model.JSONIMAGES] = images
-	mp[model.JSONAUDIOS] = audioTimings
+	mp[model.JSONAUDIOSTIMES] = audioTimings
+	mp[model.JSONAUDIONAMES] = audioFiles
+	mp[model.JSONPARAGAP] = paraGap
+	mp[model.JSONSENTENCEGAP] = sentenceGap
 
 	payload, err := json.Marshal(mp)
 	if err != nil {
@@ -426,6 +454,23 @@ func createPayloadForVideoProject() []byte {
 
 	return payload
 
+}
+
+func getWavDurationPara(sentences []string) ([]float64, error) {
+	var ans = []float64{}
+	for _, filename := range sentences {
+		duration := 10.0
+		var err error
+		if filename != "" {
+			duration, err = getWavDuration(filename)
+			if err != nil {
+				return nil, err
+			}
+		}
+		ans = append(ans, duration)
+	}
+
+	return ans, nil
 }
 
 func OptimizeScript(script string) string {

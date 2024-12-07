@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
@@ -25,6 +26,24 @@ func ImagesFolder(imgFolder string) {
 
 func ReuseAudioFolder(folder string) {
 	model.AddToDb(model.REUSEAUDIOFOLDER, folder)
+}
+
+func SentenceGap(gap string) {
+	gapInFloat, err := strconv.ParseFloat(gap, 64)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return
+	}
+	model.AddToDb(model.SENTENCEGAP, gapInFloat)
+}
+
+func ParaGap(gap string) {
+	gapInFloat, err := strconv.ParseFloat(gap, 64)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return
+	}
+	model.AddToDb(model.PARAGAP, gapInFloat)
 }
 
 func ValidateGeneralSceenFeilds() error {

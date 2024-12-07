@@ -5,15 +5,19 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	apiclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
 	serverclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
 	errorhandling "github.com/jala-R/VideoAutomatorGUI/packages/ErrorHandling"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/model"
 	translationclient "github.com/jala-R/VideoAutomatorGUI/packages/TranslationClient"
 	utils "github.com/jala-R/VideoAutomatorGUI/packages/Utils"
+	voiceclient "github.com/jala-R/VideoAutomatorGUI/packages/VoiceClient"
 )
 
 func ScriptFileHandler(fileLocation string) {
@@ -87,15 +91,107 @@ func ScriptInputSubmit(w fyne.Window) func() {
 	}
 }
 
-func ConvertVoice(script *widget.Entry, locale string, platform *string, profile *string, voice *string) func() {
+func ConvertVoice(script *widget.Entry, locale string, platform *string, profile *string, voice *string, statusLabel *widget.Label) func() {
 	return func() {
-		//get the key
-		//create instanse
+
+		var status = [][]bool{}
+
 		//get script
-		//marshall it
-		//trigger go routine for each sentences with channel
-		fmt.Println(locale, *platform, *profile, *voice)
+		scriptTxt := script.Text
+		marshalledScript := utils.MarshallScript(scriptTxt)
+		sentenceCnt := 0
+		for _, para := range marshalledScript {
+			sentenceCnt += len(para)
+			status = append(status, make([]bool, len(para)))
+		}
+
+		doneCnt := 0
+
+		val := model.QueryDB(model.AUDIOOUTPUTFOLDER)
+		if val == nil {
+			return
+		}
+		outputFolder, _ := val.(string)
+		fulloutputFolder := filepath.Join(outputFolder, "audio")
+		err := os.Mkdir(fulloutputFolder, os.ModePerm)
+		if err != nil && err.Error() != "file exists" {
+			errorhandling.HandleError(err)
+			return
+		}
+		var messageChannel = make(chan []int)
+
+		statusLabel.SetText(fmt.Sprintf("Inprogress - %d/%d", doneCnt, sentenceCnt))
+		statusLabel.Refresh()
+
+		for doneCnt < sentenceCnt {
+			//get the key
+			key := apiclient.GetKey(*platform, *profile)
+			if key == "" {
+				errorhandling.HandleError(fmt.Errorf("key exhast for platform: %s profile%s", *platform, *profile))
+				return
+			}
+			//create instanse
+			voiceclientObj := voiceclient.VoiceClientDir[*platform].New()
+			voiceclientObj.GetVoices(key)
+			voiceId := voiceclientObj.GetVoiceId(*voice)
+			if voiceId == "" {
+				errorhandling.HandleError(fmt.Errorf("selected voice not found in rotated key"))
+				return
+			}
+
+			var routinesTriggered = 0
+			go func() {
+				for i := range status {
+					for j := range status[i] {
+						if !status[i][j] {
+							routinesTriggered++
+							filePath := filepath.Join(fulloutputFolder, fmt.Sprintf("%d.%d.wav", i+1, j+1))
+							time.Sleep(time.Second * 3)
+							go voiceConvertRoutine(voiceclientObj, messageChannel, filePath, marshalledScript[i][j], i, j)
+						}
+					}
+				}
+
+			}()
+
+			var procesed = 0
+			for {
+				msg := <-messageChannel
+				procesed++
+				if msg[2] == 1 {
+					status[msg[0]][msg[1]] = true
+					doneCnt++
+					statusLabel.SetText(fmt.Sprintf("Inprogress - %d/%d", doneCnt, sentenceCnt))
+					statusLabel.Refresh()
+				}
+				if procesed == routinesTriggered {
+					break
+				}
+			}
+
+			if doneCnt < sentenceCnt {
+				fmt.Println("Rotating key")
+				apiclient.RotateKey(*platform, *profile)
+			}
+
+		}
+		statusLabel.SetText("Done")
+		statusLabel.Refresh()
+
 	}
+}
+
+func voiceConvertRoutine(voiceclientObj voiceclient.IVoiceConversion, ch chan<- []int, filePath string, line string, i, j int) {
+	fmt.Println("got request for", i, j)
+	err := voiceclientObj.ConvertVoice(line, filePath)
+	fmt.Println("done request for", i, j, err)
+	msg := []int{i, j, 1}
+	if err != nil {
+		msg[2] = 0
+		ch <- msg
+		return
+	}
+	ch <- msg
 }
 
 func RegisterEntryVsLocale(locale string, script *widget.Entry) {
