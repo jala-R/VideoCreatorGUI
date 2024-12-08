@@ -45,9 +45,14 @@ func configUrls() fyne.CanvasObject {
 	serverUrl.OnChanged = controller.ServerUrlChange
 	serverUrl.SetPlaceHolder("Server url")
 
+	valentinoLabsUrl := widget.NewEntry()
+	valentinoLabsUrl.SetPlaceHolder("valentino voice url")
+	valentinoLabsUrl.OnChanged = controller.ValentinoVoiceUrlChange
+
 	form := widget.NewForm(
 		widget.NewFormItem("Server url", serverUrl),
 		widget.NewFormItem("Transaltion url", transUrl),
+		widget.NewFormItem("Valentino url", valentinoLabsUrl),
 	)
 
 	form.OnSubmit = controller.ConfigSubmit

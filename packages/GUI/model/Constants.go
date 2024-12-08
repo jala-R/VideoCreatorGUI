@@ -27,6 +27,7 @@ const (
 	PARAGAP            = "db_para_gap"
 	JSONPARAGAP        = "para_gap"
 	JSONSENTENCEGAP    = "sentence_gap"
+	VALENTINOVOICEURL  = "valentino_voice_url"
 )
 
 var (

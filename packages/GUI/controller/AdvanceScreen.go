@@ -55,6 +55,10 @@ func TranslationUrlChange(url string) {
 	model.AddToDb(model.TRANSLATIONURL, url)
 }
 
+func ValentinoVoiceUrlChange(url string) {
+	model.AddToDb(model.VALENTINOVOICEURL, url)
+}
+
 func ConfigSubmit() {
 
 }
