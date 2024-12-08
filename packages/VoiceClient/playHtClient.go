@@ -52,6 +52,7 @@ func (obj *PlayHTClient) GetVoices(key string) []string {
 		errorhandling.HandleError(err)
 		return nil
 	}
+	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
 
@@ -160,6 +161,7 @@ func (obj *PlayHTClient) ConvertVoice(line string, filePath string) error {
 		errorhandling.HandleError(err)
 		return nil
 	}
+	defer res.Body.Close()
 
 	if res.StatusCode == 403 {
 		return errors.New("credits over")

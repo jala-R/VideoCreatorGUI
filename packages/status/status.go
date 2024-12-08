@@ -16,3 +16,9 @@ func Pop() {
 	info.Resize(fyne.NewSize(200, 200))
 	info.Show()
 }
+
+func ErrorPop() {
+	info := dialog.NewInformation("Status", "Error", window)
+	info.Resize(fyne.NewSize(200, 200))
+	info.Show()
+}

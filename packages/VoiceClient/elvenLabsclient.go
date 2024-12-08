@@ -1,10 +1,14 @@
 package voiceclient
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"slices"
 
 	errorhandling "github.com/jala-R/VideoAutomatorGUI/packages/ErrorHandling"
 )
@@ -104,6 +108,8 @@ func getVoiceOnlyElevenLabs(voiceKey [][]string) []string {
 		ans = append(ans, temp[0])
 	}
 
+	slices.Sort(ans)
+
 	return ans
 }
 
@@ -120,6 +126,74 @@ func (obj *ElevnLabsClient) GetVoiceId(voice string) string {
 }
 
 func (obj *ElevnLabsClient) ConvertVoice(line string, filePath string) error {
-	fmt.Println(obj.selectedVoiceKey)
+	var selectedVoiceKey = obj.selectedVoiceKey[1]
+
+	url := fmt.Sprintf("https://api.elevenlabs.io/v1/text-to-speech/%s/stream", selectedVoiceKey)
+
+	headers := make(map[string][]string)
+	headers["Accept"] = []string{"application/json"}
+	headers["xi-api-key"] = []string{obj.apiKey}
+
+	body := GetRequestData()
+	body.Text = line
+
+	bodyJson, _ := json.Marshal(body)
+
+	req, err := http.NewRequest("POST", url, bytes.NewReader(bodyJson))
+	if err != nil {
+		errorhandling.HandleError(err)
+		return nil
+	}
+	req.Header = headers
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return nil
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		content, _ := io.ReadAll(res.Body)
+		errorhandling.HandleError(fmt.Errorf("elevenlabs api error: status code : %d with message : %s", res.StatusCode, content))
+		if res.StatusCode == 401 {
+			return errors.New("eleven labs error")
+		}
+	}
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return nil
+	}
+	defer file.Close()
+
+	convertMp3ToWav(res.Body, file)
+
 	return nil
+
+}
+
+type RequestData struct {
+	Text          string        `json:"text"`
+	Model_id      string        `json:"model_id"`
+	VoiceSettings VoiceSettings `json:"voice_settings"`
+}
+
+type VoiceSettings struct {
+	Stability         float64 `json:"stability"`
+	Similarity_boost  float64 `json:"similarity_boost"`
+	Style             float64 `json:"style"`
+	Use_speaker_boost bool    `json:"use_speaker_boost"`
+}
+
+func GetRequestData() RequestData {
+	data := RequestData{}
+	data.Model_id = "eleven_multilingual_v2"
+	data.VoiceSettings.Stability = 0.5
+	data.VoiceSettings.Similarity_boost = 0.8
+	data.VoiceSettings.Style = 0.0
+	data.VoiceSettings.Use_speaker_boost = true
+	return data
 }
