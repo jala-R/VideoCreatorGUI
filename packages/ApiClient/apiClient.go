@@ -438,6 +438,13 @@ func createPayloadForVideoProject() []byte {
 		audioTimings[i] = duration
 	}
 
+	val = model.QueryDB(model.IMAGESINORDER)
+	if val == nil {
+		errorhandling.HandleError(fmt.Errorf("images in order not set in DB"))
+		return nil
+	}
+	imagesInOrder, _ := val.(bool)
+
 	var mp = map[string]any{}
 	mp[model.JSONPROJECTNAME] = projectName
 	mp[model.JSONIMAGES] = images
@@ -445,6 +452,7 @@ func createPayloadForVideoProject() []byte {
 	mp[model.JSONAUDIONAMES] = audioFiles
 	mp[model.JSONPARAGAP] = paraGap
 	mp[model.JSONSENTENCEGAP] = sentenceGap
+	mp[model.JSONIMAGESINORDER] = imagesInOrder
 
 	payload, err := json.Marshal(mp)
 	if err != nil {
@@ -473,7 +481,7 @@ func getWavDurationPara(sentences []string) ([]float64, error) {
 	return ans, nil
 }
 
-func OptimizeScript(script string) string {
+func OptimizeScript(script string, strict16 bool) string {
 
 	url := getUrl()
 	if url == "" {
@@ -481,9 +489,19 @@ func OptimizeScript(script string) string {
 		return ""
 	}
 
+	var bodyMp = map[string]any{}
+	bodyMp["script"] = script
+	bodyMp["strict16"] = strict16
+
+	body, err := json.Marshal(bodyMp)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return ""
+	}
+
 	fullUrl := fmt.Sprintf("http://%s/optimizeScript", url)
 
-	req, err := http.NewRequest("POST", fullUrl, strings.NewReader(script))
+	req, err := http.NewRequest("POST", fullUrl, bytes.NewReader(body))
 	if err != nil {
 		errorhandling.HandleError(err)
 		return ""

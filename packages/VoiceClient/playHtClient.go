@@ -107,7 +107,16 @@ func getAllVoiceDetailsPlayHT(body []byte) [][]string {
 			continue
 		}
 
-		fullname := fmt.Sprintf("%s-%s", name, voiceEngine)
+		val = voiceDetails["language"]
+		if val == nil {
+			continue
+		}
+		language, ok := val.(string)
+		if !ok {
+			continue
+		}
+
+		fullname := fmt.Sprintf("%s-%s-%s", name, voiceEngine, language)
 
 		val = voiceDetails["id"]
 		if val == nil {
@@ -121,6 +130,26 @@ func getAllVoiceDetailsPlayHT(body []byte) [][]string {
 		voiceKey = append(voiceKey, []string{fullname, id})
 
 	}
+
+	//manual voice upload for mutilungulag
+
+	//spanish
+	voiceKey = append(voiceKey, []string{
+		"xavi-spanish",
+		"s3://voice-cloning-zero-shot/36328a44-5c42-4a35-a9a1-b45596a56c88/original/manifest.json",
+	})
+
+	//german
+	voiceKey = append(voiceKey, []string{
+		"illas-german",
+		"s3://voice-cloning-zero-shot/f78a1dc3-6533-4967-a0d2-88e13894a45a/original/manifest.json",
+	})
+
+	//portugal
+	voiceKey = append(voiceKey, []string{
+		"jorge-portugal",
+		"s3://voice-cloning-zero-shot/ec8095bd-bbab-4229-8527-0b0ead293823/original/manifest.json",
+	})
 
 	return voiceKey
 

@@ -12,13 +12,16 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	apiclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
-	serverclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
 	errorhandling "github.com/jala-R/VideoAutomatorGUI/packages/ErrorHandling"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/model"
 	translationclient "github.com/jala-R/VideoAutomatorGUI/packages/TranslationClient"
 	utils "github.com/jala-R/VideoAutomatorGUI/packages/Utils"
 	voiceclient "github.com/jala-R/VideoAutomatorGUI/packages/VoiceClient"
 )
+
+func init() {
+	model.AddToDb(model.STRICT16WORDS, false)
+}
 
 func ScriptFileHandler(fileLocation string) {
 	model.AddToDb(model.SCRIPTFILE, fileLocation)
@@ -181,6 +184,10 @@ func ConvertVoice(script *widget.Entry, locale string, platform *string, profile
 	}
 }
 
+func SetStrict16WordsPerPara(state bool) {
+	model.AddToDb(model.STRICT16WORDS, state)
+}
+
 func voiceConvertRoutine(voiceclientObj voiceclient.IVoiceConversion, ch chan<- []int, filePath string, line string, i, j int) {
 	fmt.Println("got request for", i, j)
 	err := voiceclientObj.ConvertVoice(line, filePath)
@@ -237,7 +244,15 @@ func TriggerTranslation() {
 		errorhandling.HandleError(errors.New("no script given"))
 		return
 	}
-	optimizedScript := serverclient.OptimizeScript(inputEntry.Text)
+
+	val = model.QueryDB(model.STRICT16WORDS)
+	if val == nil {
+		errorhandling.HandleError(errors.New("strict 16 words not set in DB"))
+		return
+	}
+	strict16, _ := val.(bool)
+
+	optimizedScript := apiclient.OptimizeScript(inputEntry.Text, strict16)
 	englishScriptEntry.SetText(optimizedScript)
 	delete(selectedLocaleVsEntry, model.LOCALES[0])
 

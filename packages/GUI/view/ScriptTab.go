@@ -94,6 +94,7 @@ func inputScriptGUI(w fyne.Window) fyne.CanvasObject {
 	form := widget.NewForm(
 		widget.NewFormItem("Select Script", selectResourceDialog(types.NewFileType("Select file", w, controller.ScriptFileHandler, ".txt"))),
 		widget.NewFormItem("", scriptContent),
+		widget.NewFormItem("Dont split para", widget.NewCheck("True", controller.SetStrict16WordsPerPara)),
 		widget.NewFormItem("Select Audio Output folder", selectResourceDialog(types.NewFolderType("Select", w, controller.AudioLocationHandler))),
 		widget.NewFormItem("Locales", widget.NewCheckGroup(
 			model.LOCALES[1:],

@@ -36,6 +36,7 @@ func generalTabGUI(w fyne.Window) fyne.CanvasObject {
 		widget.NewFormItem("Output Folder", selectResourceDialog(types.NewFolderType("Browse", w, controller.ProjectOutputFolder))),
 		widget.NewFormItem("Image Folder", selectResourceDialog(types.NewFolderType("Browse", w, controller.ImagesFolder))),
 		widget.NewFormItem("Audio Folder", selectResourceDialog(types.NewFolderType("Browse", w, controller.ReuseAudioFolder))),
+		widget.NewFormItem("Images order", widget.NewCheck("Inorder", controller.ImagesInOrder)),
 		widget.NewFormItem("Sentence Gap", createSingleEntry("0.0", controller.SentenceGap)),
 		widget.NewFormItem("Para Gap", createSingleEntry("0.0", controller.ParaGap)),
 

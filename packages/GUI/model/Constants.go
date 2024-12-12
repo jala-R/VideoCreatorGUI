@@ -28,6 +28,9 @@ const (
 	JSONPARAGAP        = "para_gap"
 	JSONSENTENCEGAP    = "sentence_gap"
 	VALENTINOVOICEURL  = "valentino_voice_url"
+	STRICT16WORDS      = "strict_16_words"
+	IMAGESINORDER      = "images_in_order"
+	JSONIMAGESINORDER  = "json_images_in_order"
 )
 
 var (

@@ -12,6 +12,10 @@ import (
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/model"
 )
 
+func init() {
+	model.AddToDb(model.IMAGESINORDER, false)
+}
+
 func ProjectNameHandler(projName string) {
 	model.AddToDb(model.PROJECTNAME, projName)
 }
@@ -26,6 +30,10 @@ func ImagesFolder(imgFolder string) {
 
 func ReuseAudioFolder(folder string) {
 	model.AddToDb(model.REUSEAUDIOFOLDER, folder)
+}
+
+func ImagesInOrder(state bool) {
+	model.AddToDb(model.IMAGESINORDER, state)
 }
 
 func SentenceGap(gap string) {
