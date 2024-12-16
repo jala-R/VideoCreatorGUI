@@ -522,3 +522,12 @@ func OptimizeScript(script string, strict16 bool) string {
 	return string(data)
 
 }
+
+func GetKeyDetailsForPlatform(platform string) map[string]int {
+	temp := map[string]int{}
+	temp["Profile1"] = 1
+	temp["Profile3"] = 5
+	temp["Profile2"] = 7
+	temp["Profile0"] = 2
+	return temp
+}

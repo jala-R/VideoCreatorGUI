@@ -31,6 +31,7 @@ import (
 
 func generalTabGUI(w fyne.Window) fyne.CanvasObject {
 
+	errorhandling.ErrorBox.SetMinRowsVisible(20)
 	generalScreenForm := widget.NewForm(
 		widget.NewFormItem("Project Name", createSingleEntry("Enter project Name", controller.ProjectNameHandler)),
 		widget.NewFormItem("Output Folder", selectResourceDialog(types.NewFolderType("Browse", w, controller.ProjectOutputFolder))),

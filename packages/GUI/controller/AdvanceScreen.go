@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+
 	"fyne.io/fyne/v2/widget"
 	apiclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/model"
@@ -113,4 +115,18 @@ func isMatch(str string, pattern string) bool {
 	}
 
 	return false
+}
+
+func OnKeyViewPlatformChange(entry *widget.Entry) func(string) {
+	return func(platform string) {
+		//make api call to server and get the profile to key count
+		keyCounts := apiclient.GetKeyDetailsForPlatform(platform)
+		var textToShow = make([]byte, 0, 100)
+
+		for k, v := range keyCounts {
+			textToShow = append(textToShow, fmt.Sprintf("%s : %d\n", k, v)...)
+		}
+
+		entry.SetText(string(textToShow))
+	}
 }

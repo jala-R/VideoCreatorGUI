@@ -12,7 +12,21 @@ func advanceTabGUI() fyne.CanvasObject {
 	return container.NewAppTabs(
 		container.NewTabItem("Add Key", addKeyTab()),
 		container.NewTabItem("Config", configUrls()),
+		container.NewTabItem("Key counts", keyCounts()),
 	)
+}
+
+func keyCounts() fyne.CanvasObject {
+	keysDetails := widget.NewMultiLineEntry()
+	keysDetails.SetMinRowsVisible(35)
+	platformOptions := widget.NewSelect(voiceclient.GetRegistedPlatforms(), controller.OnKeyViewPlatformChange(keysDetails))
+
+	form := widget.NewForm(
+		widget.NewFormItem("Platform", platformOptions),
+		widget.NewFormItem("", keysDetails),
+	)
+
+	return form
 }
 
 func addKeyTab() fyne.CanvasObject {

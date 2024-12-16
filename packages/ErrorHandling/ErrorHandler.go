@@ -12,7 +12,6 @@ var ErrorBox *widget.Entry
 
 func init() {
 	ErrorBox = widget.NewMultiLineEntry()
-
 }
 
 func HandleErrorPop(err error) {
