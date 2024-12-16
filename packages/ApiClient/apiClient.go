@@ -524,10 +524,90 @@ func OptimizeScript(script string, strict16 bool) string {
 }
 
 func GetKeyDetailsForPlatform(platform string) map[string]int {
-	temp := map[string]int{}
-	temp["Profile1"] = 1
-	temp["Profile3"] = 5
-	temp["Profile2"] = 7
-	temp["Profile0"] = 2
-	return temp
+	apiUrl := getUrl()
+	if apiUrl == "" {
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
+		return nil
+	}
+
+	fullUrl := fmt.Sprintf("http://%s/listProfileKeys", apiUrl)
+
+	parseUrl, err := url.Parse(fullUrl)
+	if err != nil {
+		errorhandling.HandleErrorPop(err)
+		return nil
+	}
+	q := parseUrl.Query()
+	q.Add("platform", platform)
+
+	parseUrl.RawQuery = q.Encode()
+
+	apiFullUrl := parseUrl.String()
+
+	resp, err := http.Get(apiFullUrl)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return nil
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return nil
+	}
+
+	var result = map[string]int{}
+
+	json.Unmarshal(data, &result)
+
+	return result
+
+}
+
+func PresistProfiles(profiles []string) {
+	val := model.QueryDB(model.PLATFORMFORKEYSVIEW)
+	if val == nil {
+		errorhandling.HandleError(fmt.Errorf("platform not set to presist keys"))
+		return
+	}
+	platform, _ := val.(string)
+
+	payload := map[string][]string{
+		"profile": profiles,
+	}
+
+	data, _ := json.Marshal(payload)
+
+	apiUrl := getUrl()
+	if apiUrl == "" {
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
+		return
+	}
+
+	fullUrl := fmt.Sprintf("http://%s/profileSubmit", apiUrl)
+
+	parseUrl, err := url.Parse(fullUrl)
+	if err != nil {
+		errorhandling.HandleErrorPop(err)
+		return
+	}
+	q := parseUrl.Query()
+	q.Add("platform", platform)
+
+	parseUrl.RawQuery = q.Encode()
+
+	apiFullUrl := parseUrl.String()
+
+	req, err := http.NewRequest("POST", apiFullUrl, bytes.NewReader(data))
+	if err != nil {
+		errorhandling.HandleError(err)
+		return
+	}
+
+	_, err = http.DefaultClient.Do(req)
+	if err != nil {
+		errorhandling.HandleError(err)
+		return
+	}
+
 }

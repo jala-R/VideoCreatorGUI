@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"bufio"
 	"fmt"
+	"strings"
 
 	"fyne.io/fyne/v2/widget"
 	apiclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
@@ -119,6 +121,10 @@ func isMatch(str string, pattern string) bool {
 
 func OnKeyViewPlatformChange(entry *widget.Entry) func(string) {
 	return func(platform string) {
+
+		//presist the platform
+		model.AddToDb(model.PLATFORMFORKEYSVIEW, platform)
+
 		//make api call to server and get the profile to key count
 		keyCounts := apiclient.GetKeyDetailsForPlatform(platform)
 		var textToShow = make([]byte, 0, 100)
@@ -128,5 +134,32 @@ func OnKeyViewPlatformChange(entry *widget.Entry) func(string) {
 		}
 
 		entry.SetText(string(textToShow))
+	}
+}
+
+func SaveProfiles(entry *widget.Entry) func() {
+	return func() {
+		text := entry.Text
+
+		ip := bufio.NewReader(strings.NewReader(text))
+		profiles := []string{}
+		for {
+			line, _ := ip.ReadString('\n')
+			if len(line) == 0 {
+				break
+			}
+			line = line[:len(line)-1]
+
+			prof := strings.Split(line, ":")[0]
+
+			if prof[len(prof)-1] == ' ' {
+				prof = prof[:len(prof)-1]
+			}
+
+			profiles = append(profiles, prof)
+		}
+
+		apiclient.PresistProfiles(profiles)
+
 	}
 }

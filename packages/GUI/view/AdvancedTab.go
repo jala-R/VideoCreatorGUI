@@ -26,6 +26,8 @@ func keyCounts() fyne.CanvasObject {
 		widget.NewFormItem("", keysDetails),
 	)
 
+	form.OnSubmit = controller.SaveProfiles(keysDetails)
+
 	return form
 }
 
