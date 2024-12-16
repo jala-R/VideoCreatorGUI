@@ -36,13 +36,13 @@ func TranslateSentence(line, locale string) string {
 
 	requestBody, err := json.Marshal(body)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	url := getUrl()
 	if url == "" {
-		errorhandling.HandleError(errors.New("no url set in db"))
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
 		return ""
 	}
 
@@ -54,26 +54,26 @@ func TranslateSentence(line, locale string) string {
 		bytes.NewReader(requestBody),
 	)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	var respMap = map[string]string{}
 	err = json.Unmarshal(data, &respMap)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 

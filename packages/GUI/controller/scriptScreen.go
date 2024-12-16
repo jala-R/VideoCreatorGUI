@@ -33,14 +33,14 @@ func ScriptFileHandler(fileLocation string) {
 	if fileLocation != "" {
 		file, err := os.Open(fileLocation)
 		if err != nil {
-			errorhandling.HandleError(err)
+			errorhandling.HandleErrorPop(err)
 			return
 		}
 		defer file.Close()
 
 		content, err := io.ReadAll(file)
 		if err != nil {
-			errorhandling.HandleError(err)
+			errorhandling.HandleErrorPop(err)
 			return
 		}
 
@@ -80,7 +80,7 @@ func ScriptInputSubmit(w fyne.Window) func() {
 		err := ValidateScriptScreenFeilds()
 
 		if err != nil {
-			errorhandling.HandleError(err)
+			errorhandling.HandleErrorPop(err)
 			return
 		}
 
@@ -94,93 +94,97 @@ func ScriptInputSubmit(w fyne.Window) func() {
 	}
 }
 
-func ConvertVoice(script *widget.Entry, locale string, platform *string, profile *string, voice *string, statusLabel *widget.Label) func() {
-	return func() {
+func convertVoiceJob(script *widget.Entry, locale string, platform *string, profile *string, voice *string, statusLabel *widget.Label) {
 
-		var status = [][]bool{}
+	var status = [][]bool{}
 
-		//get script
-		scriptTxt := script.Text
-		marshalledScript := utils.MarshallScript(scriptTxt)
-		sentenceCnt := 0
-		for _, para := range marshalledScript {
-			sentenceCnt += len(para)
-			status = append(status, make([]bool, len(para)))
-		}
+	//get script
+	scriptTxt := script.Text
+	marshalledScript := utils.MarshallScript(scriptTxt)
+	sentenceCnt := 0
+	for _, para := range marshalledScript {
+		sentenceCnt += len(para)
+		status = append(status, make([]bool, len(para)))
+	}
 
-		doneCnt := 0
+	doneCnt := 0
 
-		val := model.QueryDB(model.AUDIOOUTPUTFOLDER)
-		if val == nil {
+	val := model.QueryDB(model.AUDIOOUTPUTFOLDER)
+	if val == nil {
+		return
+	}
+	outputFolder, _ := val.(string)
+	fulloutputFolder := filepath.Join(outputFolder, "audio"+locale)
+	err := os.Mkdir(fulloutputFolder, os.ModePerm)
+	if err != nil && err.Error() != "file exists" {
+		errorhandling.HandleErrorPop(err)
+		return
+	}
+	var messageChannel = make(chan []int)
+
+	statusLabel.SetText(fmt.Sprintf("Inprogress - %d/%d", doneCnt, sentenceCnt))
+	statusLabel.Refresh()
+
+	for doneCnt < sentenceCnt {
+		//get the key
+		key := apiclient.GetKey(*platform, *profile)
+		if key == "" {
+			errorhandling.HandleErrorPop(fmt.Errorf("key exhast for platform: %s profile%s", *platform, *profile))
 			return
 		}
-		outputFolder, _ := val.(string)
-		fulloutputFolder := filepath.Join(outputFolder, "audio")
-		err := os.Mkdir(fulloutputFolder, os.ModePerm)
-		if err != nil && err.Error() != "file exists" {
-			errorhandling.HandleError(err)
+		//create instanse
+		voiceclientObj := voiceclient.VoiceClientDir[*platform].New()
+		voiceclientObj.GetVoices(key)
+		voiceId := voiceclientObj.GetVoiceId(*voice)
+		if voiceId == "" {
+			errorhandling.HandleErrorPop(fmt.Errorf("selected voice not found in rotated key"))
 			return
 		}
-		var messageChannel = make(chan []int)
 
-		statusLabel.SetText(fmt.Sprintf("Inprogress - %d/%d", doneCnt, sentenceCnt))
-		statusLabel.Refresh()
-
-		for doneCnt < sentenceCnt {
-			//get the key
-			key := apiclient.GetKey(*platform, *profile)
-			if key == "" {
-				errorhandling.HandleError(fmt.Errorf("key exhast for platform: %s profile%s", *platform, *profile))
-				return
-			}
-			//create instanse
-			voiceclientObj := voiceclient.VoiceClientDir[*platform].New()
-			voiceclientObj.GetVoices(key)
-			voiceId := voiceclientObj.GetVoiceId(*voice)
-			if voiceId == "" {
-				errorhandling.HandleError(fmt.Errorf("selected voice not found in rotated key"))
-				return
-			}
-
-			var routinesTriggered = 0
-			go func() {
-				for i := range status {
-					for j := range status[i] {
-						if !status[i][j] {
-							routinesTriggered++
-							filePath := filepath.Join(fulloutputFolder, fmt.Sprintf("%d.%d.wav", i+1, j+1))
-							time.Sleep(time.Second * 3)
-							go voiceConvertRoutine(voiceclientObj, messageChannel, filePath, marshalledScript[i][j], i, j)
-						}
+		var routinesTriggered = 0
+		go func() {
+			for i := range status {
+				for j := range status[i] {
+					if !status[i][j] {
+						routinesTriggered++
+						filePath := filepath.Join(fulloutputFolder, fmt.Sprintf("%d.%d.wav", i+1, j+1))
+						time.Sleep(time.Second * 3)
+						go voiceConvertRoutine(voiceclientObj, messageChannel, filePath, marshalledScript[i][j], i, j)
 					}
 				}
-
-			}()
-
-			var procesed = 0
-			for {
-				msg := <-messageChannel
-				procesed++
-				if msg[2] == 1 {
-					status[msg[0]][msg[1]] = true
-					doneCnt++
-					statusLabel.SetText(fmt.Sprintf("Inprogress - %d/%d", doneCnt, sentenceCnt))
-					statusLabel.Refresh()
-				}
-				if procesed == routinesTriggered {
-					break
-				}
 			}
 
-			if doneCnt < sentenceCnt {
-				fmt.Println("Rotating key")
-				apiclient.RotateKey(*platform, *profile)
-			}
+		}()
 
+		var procesed = 0
+		for {
+			msg := <-messageChannel
+			procesed++
+			if msg[2] == 1 {
+				status[msg[0]][msg[1]] = true
+				doneCnt++
+				statusLabel.SetText(fmt.Sprintf("Inprogress - %d/%d", doneCnt, sentenceCnt))
+				statusLabel.Refresh()
+			}
+			if procesed == routinesTriggered {
+				break
+			}
 		}
-		statusLabel.SetText("Done")
-		statusLabel.Refresh()
 
+		if doneCnt < sentenceCnt {
+			fmt.Println("Rotating key")
+			apiclient.RotateKey(*platform, *profile)
+		}
+
+	}
+	statusLabel.SetText("Done")
+	statusLabel.Refresh()
+
+}
+
+func ConvertVoice(script *widget.Entry, locale string, platform *string, profile *string, voice *string, statusLabel *widget.Label) func() {
+	return func() {
+		go convertVoiceJob(script, locale, platform, profile, voice, statusLabel)
 	}
 }
 
@@ -191,6 +195,7 @@ func SetStrict16WordsPerPara(state bool) {
 func voiceConvertRoutine(voiceclientObj voiceclient.IVoiceConversion, ch chan<- []int, filePath string, line string, i, j int) {
 	fmt.Println("got request for", i, j)
 	err := voiceclientObj.ConvertVoice(line, filePath)
+	errorhandling.HandleError(err)
 	fmt.Println("done request for", i, j, err)
 	msg := []int{i, j, 1}
 	if err != nil {
@@ -214,7 +219,7 @@ func TriggerTranslation() {
 	if val != nil {
 		selectedLocales, ok := val.([]string)
 		if !ok {
-			errorhandling.HandleError(errors.New("type casting failed for selected locale"))
+			errorhandling.HandleErrorPop(errors.New("type casting failed for selected locale"))
 			return
 		}
 
@@ -241,13 +246,13 @@ func TriggerTranslation() {
 	//make backendcall to parse the english
 	inputEntry := model.GetEntry(model.INPUTSCRIPTWIDGET)
 	if inputEntry == nil {
-		errorhandling.HandleError(errors.New("no script given"))
+		errorhandling.HandleErrorPop(errors.New("no script given"))
 		return
 	}
 
 	val = model.QueryDB(model.STRICT16WORDS)
 	if val == nil {
-		errorhandling.HandleError(errors.New("strict 16 words not set in DB"))
+		errorhandling.HandleErrorPop(errors.New("strict 16 words not set in DB"))
 		return
 	}
 	strict16, _ := val.(bool)

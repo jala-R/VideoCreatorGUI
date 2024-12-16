@@ -39,7 +39,7 @@ func ImagesInOrder(state bool) {
 func SentenceGap(gap string) {
 	gapInFloat, err := strconv.ParseFloat(gap, 64)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 	model.AddToDb(model.SENTENCEGAP, gapInFloat)
@@ -48,7 +48,7 @@ func SentenceGap(gap string) {
 func ParaGap(gap string) {
 	gapInFloat, err := strconv.ParseFloat(gap, 64)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 	model.AddToDb(model.PARAGAP, gapInFloat)
@@ -77,7 +77,7 @@ func MainScreenSubmit(w fyne.Window) func() {
 
 		err := ValidateGeneralSceenFeilds()
 		if err != nil {
-			errorhandling.HandleError(err)
+			errorhandling.HandleErrorPop(err)
 			return
 		}
 

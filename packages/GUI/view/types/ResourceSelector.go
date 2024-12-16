@@ -49,7 +49,7 @@ func (folder *FolderType) Flush(label *widget.Label) {
 func (folder *FolderType) onSelect(label *widget.Label) func(fyne.ListableURI, error) {
 	return func(url fyne.ListableURI, err error) {
 		if err != nil {
-			errorhandling.HandleError(err)
+			errorhandling.HandleErrorPop(err)
 			return
 		}
 
@@ -90,11 +90,11 @@ func (file *FileType) onSelect(label *widget.Label) func(fyne.URIReadCloser, err
 	return func(url fyne.URIReadCloser, err error) {
 
 		if err != nil {
-			errorhandling.HandleError(err)
+			errorhandling.HandleErrorPop(err)
 			return
 		}
 		if url == nil {
-			errorhandling.HandleError(errors.New("no file selected"))
+			errorhandling.HandleErrorPop(errors.New("no file selected"))
 			return
 		}
 

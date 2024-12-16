@@ -44,7 +44,7 @@ func (obj *VelentioLabs) ConvertVoice(line string, filePath string) error {
 
 	err := checkJob(filePath, hash)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 	}
 
 	return nil
@@ -88,13 +88,13 @@ func addToJobQueue(line string) string {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	_, err = io.ReadAll(resp.Body)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 

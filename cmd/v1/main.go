@@ -28,5 +28,5 @@ func panicLog() {
 	if !ok {
 		err = errors.New("panic with non error type")
 	}
-	errorhandling.HandleError(err)
+	errorhandling.HandleErrorPop(err)
 }

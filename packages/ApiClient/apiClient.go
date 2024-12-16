@@ -35,14 +35,14 @@ func init() {
 func AddKey(platform, profile, newKey string) {
 	apiUrl := getUrl()
 	if apiUrl == "" {
-		errorhandling.HandleError(errors.New("no url set in db"))
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
 		return
 	}
 
 	fullUrl := fmt.Sprintf("http://%s/addKey", apiUrl)
 	parseUrl, err := url.Parse(fullUrl)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 	q := parseUrl.Query()
@@ -54,12 +54,12 @@ func AddKey(platform, profile, newKey string) {
 
 	resp, err := http.Get(parseUrl.String())
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		errorhandling.HandleError(fmt.Errorf("rotate key status code %d, message %s", resp.StatusCode, resp.Status))
+		errorhandling.HandleErrorPop(fmt.Errorf("rotate key status code %d, message %s", resp.StatusCode, resp.Status))
 	}
 
 }
@@ -67,14 +67,14 @@ func AddKey(platform, profile, newKey string) {
 func AddProfile(platform, newProfile string) {
 	apiUrl := getUrl()
 	if apiUrl == "" {
-		errorhandling.HandleError(errors.New("no url set in db"))
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
 		return
 	}
 
 	fullUrl := fmt.Sprintf("http://%s/addProfile", apiUrl)
 	parseUrl, err := url.Parse(fullUrl)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 	q := parseUrl.Query()
@@ -85,12 +85,12 @@ func AddProfile(platform, newProfile string) {
 
 	resp, err := http.Get(parseUrl.String())
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		errorhandling.HandleError(fmt.Errorf("add status code %d, message %s", resp.StatusCode, resp.Status))
+		errorhandling.HandleErrorPop(fmt.Errorf("add status code %d, message %s", resp.StatusCode, resp.Status))
 	}
 
 }
@@ -98,14 +98,14 @@ func AddProfile(platform, newProfile string) {
 func RotateKey(platform, profile string) {
 	apiUrl := getUrl()
 	if apiUrl == "" {
-		errorhandling.HandleError(errors.New("no url set in db"))
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
 		return
 	}
 
 	fullUrl := fmt.Sprintf("http://%s/rotateKey", apiUrl)
 	parseUrl, err := url.Parse(fullUrl)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 	q := parseUrl.Query()
@@ -116,12 +116,12 @@ func RotateKey(platform, profile string) {
 
 	resp, err := http.Get(parseUrl.String())
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		errorhandling.HandleError(fmt.Errorf("rotate key status code %d, message %s", resp.StatusCode, resp.Status))
+		errorhandling.HandleErrorPop(fmt.Errorf("rotate key status code %d, message %s", resp.StatusCode, resp.Status))
 	}
 
 }
@@ -129,14 +129,14 @@ func RotateKey(platform, profile string) {
 func GetKey(platform, profile string) string {
 	apiUrl := getUrl()
 	if apiUrl == "" {
-		errorhandling.HandleError(errors.New("no url set in db"))
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
 		return ""
 	}
 
 	fullUrl := fmt.Sprintf("http://%s/getKey", apiUrl)
 	parseUrl, err := url.Parse(fullUrl)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 	q := parseUrl.Query()
@@ -147,13 +147,13 @@ func GetKey(platform, profile string) string {
 
 	resp, err := http.Get(parseUrl.String())
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
@@ -167,7 +167,7 @@ func GetKey(platform, profile string) string {
 func ListProfileOnPlatform(platform string) []string {
 	apiUrl := getUrl()
 	if apiUrl == "" {
-		errorhandling.HandleError(errors.New("no url set in db"))
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
 		return nil
 	}
 
@@ -175,7 +175,7 @@ func ListProfileOnPlatform(platform string) []string {
 
 	parseUrl, err := url.Parse(fullUrl)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 	q := parseUrl.Query()
@@ -187,20 +187,20 @@ func ListProfileOnPlatform(platform string) []string {
 
 	resp, err := http.Get(apiUrl)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
 	var respUnmarshallJson = map[string][]string{}
 	err = json.Unmarshal(body, &respUnmarshallJson)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 	return respUnmarshallJson["data"]
@@ -210,7 +210,7 @@ func ListProfileOnPlatform(platform string) []string {
 func ListPlatforms() []string {
 	apiUrl := getUrl()
 	if apiUrl == "" {
-		errorhandling.HandleError(errors.New("no url set in db"))
+		errorhandling.HandleErrorPop(errors.New("no url set in db"))
 		return nil
 	}
 
@@ -218,20 +218,20 @@ func ListPlatforms() []string {
 
 	resp, err := http.Get(fullUrl)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
 	var respUnmarshallJson = map[string][]string{}
 	err = json.Unmarshal(body, &respUnmarshallJson)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
@@ -249,7 +249,7 @@ func CreateVideoProject() {
 
 	url := getUrl()
 	if url == "" {
-		errorhandling.HandleError(errors.New("no url set"))
+		errorhandling.HandleErrorPop(errors.New("no url set"))
 		return
 	}
 
@@ -259,42 +259,42 @@ func CreateVideoProject() {
 
 	req, err := http.NewRequest("POST", fullUrl, reader)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		body, _ := io.ReadAll(response.Body)
-		errorhandling.HandleError(fmt.Errorf("error with create project status: %d msg :%s", response.StatusCode, string(body)))
+		errorhandling.HandleErrorPop(fmt.Errorf("error with create project status: %d msg :%s", response.StatusCode, string(body)))
 	}
 
 	fmt.Println("writing to the file")
 	val := model.QueryDB(model.OUTPUTFOLDER)
 	if val == nil {
-		errorhandling.HandleError(errors.New("no output folder  in DB"))
+		errorhandling.HandleErrorPop(errors.New("no output folder  in DB"))
 		return
 	}
 
 	outputFolder, ok := val.(string)
 	if !ok {
-		errorhandling.HandleError(errors.New("output folder  in db not a string"))
+		errorhandling.HandleErrorPop(errors.New("output folder  in db not a string"))
 		return
 	}
 
 	val = model.QueryDB(model.PROJECTNAME)
 	if val == nil {
-		errorhandling.HandleError(errors.New("project name not set"))
+		errorhandling.HandleErrorPop(errors.New("project name not set"))
 		return
 	}
 	projectName, ok := val.(string)
 	if !ok {
-		errorhandling.HandleError(errors.New("project name not string"))
+		errorhandling.HandleErrorPop(errors.New("project name not string"))
 		return
 	}
 
@@ -302,7 +302,7 @@ func CreateVideoProject() {
 
 	file, err := os.Create(filename)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return
 	}
 
@@ -312,12 +312,12 @@ func CreateVideoProject() {
 func createPayloadForVideoProject() []byte {
 	val := model.QueryDB(model.PROJECTNAME)
 	if val == nil {
-		errorhandling.HandleError(errors.New("project name not set"))
+		errorhandling.HandleErrorPop(errors.New("project name not set"))
 		return nil
 	}
 	projectName, ok := val.(string)
 	if !ok {
-		errorhandling.HandleError(errors.New("project name not string"))
+		errorhandling.HandleErrorPop(errors.New("project name not string"))
 	}
 
 	val = model.QueryDB(model.SENTENCEGAP)
@@ -334,26 +334,26 @@ func createPayloadForVideoProject() []byte {
 
 	val = model.QueryDB(model.IMAGEFOLDER)
 	if val == nil {
-		errorhandling.HandleError(errors.New("image folder name not set"))
+		errorhandling.HandleErrorPop(errors.New("image folder name not set"))
 		return nil
 	}
 
 	imageFolder, ok := val.(string)
 	if !ok {
-		errorhandling.HandleError(errors.New("image folder not string"))
+		errorhandling.HandleErrorPop(errors.New("image folder not string"))
 		return nil
 
 	}
 
 	val = model.QueryDB(model.REUSEAUDIOFOLDER)
 	if val == nil {
-		errorhandling.HandleError(errors.New("no reuse audio found"))
+		errorhandling.HandleErrorPop(errors.New("no reuse audio found"))
 		return nil
 	}
 
 	reuseAudio, ok := val.(string)
 	if !ok {
-		errorhandling.HandleError(errors.New("reuse audio folder not a string"))
+		errorhandling.HandleErrorPop(errors.New("reuse audio folder not a string"))
 		return nil
 	}
 
@@ -361,7 +361,7 @@ func createPayloadForVideoProject() []byte {
 	var images []string
 	dirs, err := os.ReadDir(imageFolder)
 	if err != nil {
-		errorhandling.HandleError(fmt.Errorf("images folder error %w", err))
+		errorhandling.HandleErrorPop(fmt.Errorf("images folder error %w", err))
 		return nil
 	}
 
@@ -378,7 +378,7 @@ func createPayloadForVideoProject() []byte {
 	var audioFiles = [][]string{}
 	dirs, err = os.ReadDir(reuseAudio)
 	if err != nil {
-		errorhandling.HandleError(fmt.Errorf("images folder error %w", err))
+		errorhandling.HandleErrorPop(fmt.Errorf("images folder error %w", err))
 		return nil
 	}
 
@@ -392,12 +392,12 @@ func createPayloadForVideoProject() []byte {
 
 		num1, err := strconv.ParseInt(file1[0], 10, 32)
 		if err != nil {
-			errorhandling.HandleError(fmt.Errorf("audio file parse err %w", err))
+			errorhandling.HandleErrorPop(fmt.Errorf("audio file parse err %w", err))
 			return nil
 		}
 		num2, err := strconv.ParseInt(file1[1], 10, 32)
 		if err != nil {
-			errorhandling.HandleError(fmt.Errorf("audio file parse err %w", err))
+			errorhandling.HandleErrorPop(fmt.Errorf("audio file parse err %w", err))
 			return nil
 		}
 
@@ -432,7 +432,7 @@ func createPayloadForVideoProject() []byte {
 	for i, filename := range audioFiles {
 		duration, err := getWavDurationPara(filename)
 		if err != nil {
-			errorhandling.HandleError(err)
+			errorhandling.HandleErrorPop(err)
 			return nil
 		}
 		audioTimings[i] = duration
@@ -440,7 +440,7 @@ func createPayloadForVideoProject() []byte {
 
 	val = model.QueryDB(model.IMAGESINORDER)
 	if val == nil {
-		errorhandling.HandleError(fmt.Errorf("images in order not set in DB"))
+		errorhandling.HandleErrorPop(fmt.Errorf("images in order not set in DB"))
 		return nil
 	}
 	imagesInOrder, _ := val.(bool)
@@ -456,7 +456,7 @@ func createPayloadForVideoProject() []byte {
 
 	payload, err := json.Marshal(mp)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
@@ -485,7 +485,7 @@ func OptimizeScript(script string, strict16 bool) string {
 
 	url := getUrl()
 	if url == "" {
-		errorhandling.HandleError(errors.New("no url from db"))
+		errorhandling.HandleErrorPop(errors.New("no url from db"))
 		return ""
 	}
 
@@ -495,7 +495,7 @@ func OptimizeScript(script string, strict16 bool) string {
 
 	body, err := json.Marshal(bodyMp)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
@@ -503,19 +503,19 @@ func OptimizeScript(script string, strict16 bool) string {
 
 	req, err := http.NewRequest("POST", fullUrl, bytes.NewReader(body))
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	response, err := http.DefaultClient.Do(req)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return ""
 	}
 

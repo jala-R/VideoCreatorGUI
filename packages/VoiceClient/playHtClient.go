@@ -41,7 +41,7 @@ func (obj *PlayHTClient) GetVoices(key string) []string {
 	url := "https://api.play.ht/api/v2/voices"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 	req.Header["X-USER-ID"] = []string{obj.apiKey[0]}
@@ -49,7 +49,7 @@ func (obj *PlayHTClient) GetVoices(key string) []string {
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 	defer res.Body.Close()
@@ -78,14 +78,14 @@ func getAllVoiceDetailsPlayHT(body []byte) [][]string {
 
 	err := json.Unmarshal(body, &temp)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
 	for _, voice := range temp {
 		voiceDetails, ok := voice.(map[string]any)
 		if !ok {
-			errorhandling.HandleError(fmt.Errorf("error at play ht array type casting"))
+			errorhandling.HandleErrorPop(fmt.Errorf("error at play ht array type casting"))
 			return nil
 		}
 
@@ -209,8 +209,8 @@ func (obj *PlayHTClient) ConvertVoice(line string, filePath string) error {
 	}
 	defer file.Close()
 
-	convertMp3ToWav(res.Body, file)
+	err = convertMp3ToWav(res.Body, file)
 	// file.ReadFrom(res.Body)
 
-	return nil
+	return err
 }

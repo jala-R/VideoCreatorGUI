@@ -15,10 +15,20 @@ func init() {
 
 }
 
+func HandleErrorPop(err error) {
+	handlerError(err, true)
+}
+
 func HandleError(err error) {
+	handlerError(err, false)
+}
+
+func handlerError(err error, toPop bool) {
 	fmt.Println(err)
 	prevError := ErrorBox.Text
 	errorMessage := fmt.Sprintf("%s\n%s", fmt.Errorf("%s : error occured : %w", time.Now(), err).Error(), prevError)
 	ErrorBox.SetText(errorMessage)
-	status.ErrorPop()
+	if toPop {
+		status.ErrorPop(errorMessage)
+	}
 }

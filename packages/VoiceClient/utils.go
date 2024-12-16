@@ -11,11 +11,11 @@ import (
 	errorhandling "github.com/jala-R/VideoAutomatorGUI/packages/ErrorHandling"
 )
 
-func convertMp3ToWav(mp3File io.ReadCloser, wavFile *os.File) {
+func convertMp3ToWav(mp3File io.ReadCloser, wavFile *os.File) error {
 	mp3Decoder, err := mp3.NewDecoder(mp3File)
 	if err != nil {
 		errorhandling.HandleError(fmt.Errorf("failed to decode MP3: %w", err))
-		return
+		return err
 	}
 
 	// Prepare PCM buffer
@@ -36,7 +36,7 @@ func convertMp3ToWav(mp3File io.ReadCloser, wavFile *os.File) {
 				break
 			}
 			errorhandling.HandleError(fmt.Errorf("error reading MP3 data: %w", err))
-			return
+			return err
 		}
 
 		// Append decoded data to PCM buffer
@@ -59,11 +59,13 @@ func convertMp3ToWav(mp3File io.ReadCloser, wavFile *os.File) {
 	wavEncoder := wav.NewEncoder(wavFile, pcmData.Format.SampleRate, 16, pcmData.Format.NumChannels, 1)
 	if err := wavEncoder.Write(pcmData); err != nil {
 		errorhandling.HandleError(fmt.Errorf("failed to write WAV data: %w", err))
-		return
+		return err
 	}
 	if err := wavEncoder.Close(); err != nil {
 		errorhandling.HandleError(fmt.Errorf("failed to close WAV encoder: %w", err))
-		return
+		return err
 	}
+
+	return nil
 
 }

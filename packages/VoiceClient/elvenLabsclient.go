@@ -41,7 +41,7 @@ func (obj *ElevnLabsClient) GetVoices(key string) []string {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
@@ -49,7 +49,7 @@ func (obj *ElevnLabsClient) GetVoices(key string) []string {
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
@@ -58,7 +58,7 @@ func (obj *ElevnLabsClient) GetVoices(key string) []string {
 	)
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		errorhandling.HandleError(fmt.Errorf("voice for 11labs status code %d with message %s and response %s", res.StatusCode, res.Status, string(body)))
+		errorhandling.HandleErrorPop(fmt.Errorf("voice for 11labs status code %d with message %s and response %s", res.StatusCode, res.Status, string(body)))
 		return nil
 	}
 
@@ -73,12 +73,12 @@ func getAllVoiceDetailsElevenLabs(body []byte) [][]string {
 
 	err := json.Unmarshal(body, &responseMap)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 	voicesDetail, ok := responseMap["voices"].([]any)
 	if !ok {
-		errorhandling.HandleError(fmt.Errorf("getting voice details from eleven labs response json type conversion error"))
+		errorhandling.HandleErrorPop(fmt.Errorf("getting voice details from eleven labs response json type conversion error"))
 		return nil
 	}
 
@@ -86,12 +86,12 @@ func getAllVoiceDetailsElevenLabs(body []byte) [][]string {
 		temp, _ := t.(map[string]any)
 		name, ok := temp["name"].(string)
 		if !ok {
-			errorhandling.HandleError(fmt.Errorf("getting voice details from eleven labs response json type conversion name error"))
+			errorhandling.HandleErrorPop(fmt.Errorf("getting voice details from eleven labs response json type conversion name error"))
 			return nil
 		}
 		voiceId, ok := temp["voice_id"].(string)
 		if !ok {
-			errorhandling.HandleError(fmt.Errorf("getting voice details from eleven labs response json type conversion name error"))
+			errorhandling.HandleErrorPop(fmt.Errorf("getting voice details from eleven labs response json type conversion name error"))
 			return nil
 		}
 
@@ -141,14 +141,14 @@ func (obj *ElevnLabsClient) ConvertVoice(line string, filePath string) error {
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(bodyJson))
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 	req.Header = headers
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 
@@ -156,7 +156,7 @@ func (obj *ElevnLabsClient) ConvertVoice(line string, filePath string) error {
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
 		content, _ := io.ReadAll(res.Body)
-		errorhandling.HandleError(fmt.Errorf("elevenlabs api error: status code : %d with message : %s", res.StatusCode, content))
+		errorhandling.HandleErrorPop(fmt.Errorf("elevenlabs api error: status code : %d with message : %s", res.StatusCode, content))
 		if res.StatusCode == 401 {
 			return errors.New("eleven labs error")
 		}
@@ -164,7 +164,7 @@ func (obj *ElevnLabsClient) ConvertVoice(line string, filePath string) error {
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		errorhandling.HandleError(err)
+		errorhandling.HandleErrorPop(err)
 		return nil
 	}
 	defer file.Close()
