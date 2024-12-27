@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	"github.com/go-audio/wav"
 	apiclient "github.com/jala-R/VideoAutomatorGUI/packages/ApiClient"
 	errorhandling "github.com/jala-R/VideoAutomatorGUI/packages/ErrorHandling"
 	"github.com/jala-R/VideoAutomatorGUI/packages/GUI/model"
@@ -195,7 +196,9 @@ func SetStrict16WordsPerPara(state bool) {
 func voiceConvertRoutine(voiceclientObj voiceclient.IVoiceConversion, ch chan<- []int, filePath string, line string, i, j int) {
 	fmt.Println("got request for", i, j)
 	err := voiceclientObj.ConvertVoice(line, filePath)
-	errorhandling.HandleError(err)
+	if err != nil {
+		errorhandling.HandleError(err)
+	}
 	fmt.Println("done request for", i, j, err)
 	msg := []int{i, j, 1}
 	if err != nil {
@@ -305,4 +308,79 @@ func TranslateEnglishToLocale(locale string, script [][]string) {
 
 func createProgressTemplate(current, total int) string {
 	return fmt.Sprintf("Translating - %d/%d", current, total)
+}
+
+func RestartAudioProcess(script *widget.Entry, locale string, platform *string, profile *string, voice *string, statusLabel *widget.Label) func() {
+	return func() {
+		//audio folder
+		val := model.QueryDB(model.AUDIOOUTPUTFOLDER)
+		if val == nil {
+			return
+		}
+		outputFolder, _ := val.(string)
+		fulloutputFolder := filepath.Join(outputFolder, "audio"+locale)
+
+		//parse the script
+		scriptTxt := script.Text
+		marshalledScript := utils.MarshallScript(scriptTxt)
+
+		sentenceCnt := 0
+		doneCnt := 0
+
+		for _, para := range marshalledScript {
+			sentenceCnt += len(para)
+		}
+
+		statusLabel.SetText(fmt.Sprintf("Restaring %d/%d", doneCnt, sentenceCnt))
+
+		for i := range marshalledScript {
+			for j := range marshalledScript[i] {
+				audioFilePath := filepath.Join(fulloutputFolder, fmt.Sprintf("%d.%d.wav", i+1, j+1))
+
+				if !isValidWavFile(audioFilePath) {
+
+					for {
+						key := apiclient.GetKey(*platform, *profile)
+						if key == "" {
+							errorhandling.HandleErrorPop(fmt.Errorf("key exhast for platform: %s profile%s", *platform, *profile))
+							return
+						}
+
+						voiceclientObj := voiceclient.VoiceClientDir[*platform].New()
+						voiceclientObj.GetVoices(key)
+						voiceId := voiceclientObj.GetVoiceId(*voice)
+						if voiceId == "" {
+							errorhandling.HandleErrorPop(fmt.Errorf("selected voice not found in rotated key"))
+							return
+						}
+						time.Sleep(time.Second * 3)
+						err := voiceclientObj.ConvertVoice(marshalledScript[i][j], audioFilePath)
+
+						if err == nil {
+							break
+						} else {
+							apiclient.RotateKey(*platform, *profile)
+						}
+					}
+
+				}
+				doneCnt++
+				statusLabel.SetText(fmt.Sprintf("Restaring %d/%d", doneCnt, sentenceCnt))
+
+			}
+		}
+		statusLabel.SetText("Restarting done")
+
+	}
+}
+
+func isValidWavFile(filePath string) bool {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return false
+	}
+
+	decoder := wav.NewDecoder(file)
+
+	return decoder.IsValidFile()
 }

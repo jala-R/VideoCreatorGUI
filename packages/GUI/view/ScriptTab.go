@@ -51,7 +51,7 @@ func createProcessedScriptPage(locale string) fyne.CanvasObject {
 	)
 
 	script := widget.NewMultiLineEntry()
-	script.SetMinRowsVisible(35)
+	script.SetMinRowsVisible(30)
 	var profile = []string{}
 
 	controller.RegisterEntryVsLocale(locale, script)
@@ -69,6 +69,8 @@ func createProcessedScriptPage(locale string) fyne.CanvasObject {
 	})
 	statusLabel := widget.NewLabel("Not started")
 
+	restartButton := widget.NewButton("restart", controller.RestartAudioProcess(script, locale, &platform, &profileOption, &voice, statusLabel))
+
 	form := widget.NewForm(
 		widget.NewFormItem("", script),
 		widget.NewFormItem("Voice Platform", widget.NewSelect(voiceclient.GetRegistedPlatforms(), func(s string) {
@@ -80,6 +82,7 @@ func createProcessedScriptPage(locale string) fyne.CanvasObject {
 		widget.NewFormItem("Voice Profile", voiceProfile),
 		widget.NewFormItem("Voices", voices),
 		widget.NewFormItem("Status", statusLabel),
+		widget.NewFormItem("", restartButton),
 	)
 
 	form.OnSubmit = controller.ConvertVoice(script, locale, &platform, &profileOption, &voice, statusLabel)

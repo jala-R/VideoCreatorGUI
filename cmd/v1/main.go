@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"os"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -11,7 +12,9 @@ import (
 )
 
 func main() {
+
 	defer panicLog()
+	defer os.Stderr.Close()
 	a := app.New()
 	w := a.NewWindow("Video Automator")
 	status.Register(w)

@@ -34,6 +34,10 @@ func parseKey(key string) []string {
 }
 
 func (obj *PlayHTClient) GetVoices(key string) []string {
+	if key == "" {
+		errorhandling.HandleErrorPop(errors.New("no key in selected profile"))
+		return nil
+	}
 	if obj.voiceKey != nil {
 		return getVoiceOnlyPlayHT(obj.voiceKey)
 	}
@@ -139,10 +143,22 @@ func getAllVoiceDetailsPlayHT(body []byte) [][]string {
 		"s3://voice-cloning-zero-shot/36328a44-5c42-4a35-a9a1-b45596a56c88/original/manifest.json",
 	})
 
-	//german
+	//spanish
+	voiceKey = append(voiceKey, []string{
+		"Patricia Narrative",
+		"s3://voice-cloning-zero-shot/5694d5e5-2dfe-4440-8cc8-e2a69c3e7560/original/manifest.json",
+	})
+
+	//german2
 	voiceKey = append(voiceKey, []string{
 		"illas-german",
 		"s3://voice-cloning-zero-shot/f78a1dc3-6533-4967-a0d2-88e13894a45a/original/manifest.json",
+	})
+
+	//portugal
+	voiceKey = append(voiceKey, []string{
+		"Jacile Narrative",
+		"s3://voice-cloning-zero-shot/6d093315-8da6-4fd8-a4b9-5446b43ff4c7/original/manifest.json",
 	})
 
 	//portugal
@@ -209,7 +225,7 @@ func (obj *PlayHTClient) ConvertVoice(line string, filePath string) error {
 	}
 	defer file.Close()
 
-	err = convertMp3ToWav(res.Body, file)
+	convertMp3ToWav(res.Body, file)
 	// file.ReadFrom(res.Body)
 
 	return err
