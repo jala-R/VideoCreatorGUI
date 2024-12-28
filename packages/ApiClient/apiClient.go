@@ -373,6 +373,20 @@ func createPayloadForVideoProject() []byte {
 		images = append(images, fullFilePath)
 	}
 
+	sort.Slice(images, func(i, j int) bool {
+		file1, err := strconv.ParseInt(strings.Split(images[i], ".")[0], 10, 64)
+		if err != nil {
+			return false
+		}
+		file2, err := strconv.ParseInt(strings.Split(images[j], ".")[0], 10, 64)
+		if err != nil {
+			return true
+		}
+
+		return file1 < file2
+
+	})
+
 	//get all audio folder sorted
 
 	var audioFiles = [][]string{}
