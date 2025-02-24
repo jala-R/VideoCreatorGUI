@@ -59,7 +59,7 @@ func AddKey(platform, profile, newKey string) {
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		errorhandling.HandleErrorPop(fmt.Errorf("rotate key status code %d, message %s", resp.StatusCode, resp.Status))
+		errorhandling.HandleErrorPop(fmt.Errorf("Add key status code %d, message %s", resp.StatusCode, resp.Status))
 	}
 
 }
@@ -369,23 +369,38 @@ func createPayloadForVideoProject() []byte {
 		if !isImageExt(getExtension(dir.Name())) {
 			continue
 		}
-		fullFilePath := filepath.Join(imageFolder, dir.Name())
-		images = append(images, fullFilePath)
+		// fullFilePath := filepath.Join(imageFolder, )
+		images = append(images, dir.Name())
 	}
 
-	sort.Slice(images, func(i, j int) bool {
-		file1, err := strconv.ParseInt(strings.Split(images[i], ".")[0], 10, 64)
-		if err != nil {
-			return false
-		}
-		file2, err := strconv.ParseInt(strings.Split(images[j], ".")[0], 10, 64)
-		if err != nil {
-			return true
-		}
+	val = model.QueryDB(model.IMAGESINORDER)
+	if val == nil {
+		errorhandling.HandleErrorPop(fmt.Errorf("images in order not set in DB"))
+		return nil
+	}
+	imagesInOrder, _ := val.(bool)
 
-		return file1 < file2
+	if imagesInOrder {
+		sort.Slice(images, func(i, j int) bool {
+			file1, err := strconv.ParseInt(strings.Split(images[i], ".")[0], 10, 64)
+			if err != nil {
+				errorhandling.HandleError(err)
+				return false
+			}
+			file2, err := strconv.ParseInt(strings.Split(images[j], ".")[0], 10, 64)
+			if err != nil {
+				errorhandling.HandleError(err)
+				return true
+			}
 
-	})
+			return file1 < file2
+
+		})
+	}
+
+	for i, fileName := range images {
+		images[i] = filepath.Join(imageFolder, fileName)
+	}
 
 	//get all audio folder sorted
 
@@ -451,13 +466,6 @@ func createPayloadForVideoProject() []byte {
 		}
 		audioTimings[i] = duration
 	}
-
-	val = model.QueryDB(model.IMAGESINORDER)
-	if val == nil {
-		errorhandling.HandleErrorPop(fmt.Errorf("images in order not set in DB"))
-		return nil
-	}
-	imagesInOrder, _ := val.(bool)
 
 	var mp = map[string]any{}
 	mp[model.JSONPROJECTNAME] = projectName

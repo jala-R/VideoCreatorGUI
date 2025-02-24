@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -131,6 +132,7 @@ func convertVoiceJob(script *widget.Entry, locale string, platform *string, prof
 		key := apiclient.GetKey(*platform, *profile)
 		if key == "" {
 			errorhandling.HandleErrorPop(fmt.Errorf("key exhast for platform: %s profile%s", *platform, *profile))
+			statusLabel.SetText("Failed")
 			return
 		}
 		//create instanse
@@ -139,18 +141,29 @@ func convertVoiceJob(script *widget.Entry, locale string, platform *string, prof
 		voiceId := voiceclientObj.GetVoiceId(*voice)
 		if voiceId == "" {
 			errorhandling.HandleErrorPop(fmt.Errorf("selected voice not found in rotated key"))
+			statusLabel.SetText("Failed")
 			return
 		}
+
+		ctx, canc := context.WithCancel(context.Background())
+		defer canc()
 
 		var routinesTriggered = 0
 		go func() {
 			for i := range status {
 				for j := range status[i] {
 					if !status[i][j] {
-						routinesTriggered++
-						filePath := filepath.Join(fulloutputFolder, fmt.Sprintf("%d.%d.wav", i+1, j+1))
-						time.Sleep(time.Second * 3)
-						go voiceConvertRoutine(voiceclientObj, messageChannel, filePath, marshalledScript[i][j], i, j)
+
+						select {
+						case <-ctx.Done():
+							continue
+						default:
+							routinesTriggered++
+							filePath := filepath.Join(fulloutputFolder, fmt.Sprintf("%d.%d.wav", i+1, j+1))
+							time.Sleep(time.Second * 3)
+							go voiceConvertRoutine(voiceclientObj, messageChannel, filePath, marshalledScript[i][j], i, j)
+						}
+
 					}
 				}
 			}
@@ -166,6 +179,8 @@ func convertVoiceJob(script *widget.Entry, locale string, platform *string, prof
 				doneCnt++
 				statusLabel.SetText(fmt.Sprintf("Inprogress - %d/%d", doneCnt, sentenceCnt))
 				statusLabel.Refresh()
+			} else if msg[2] == 0 {
+				canc()
 			}
 			if procesed == routinesTriggered {
 				break

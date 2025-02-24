@@ -32,6 +32,8 @@ const (
 	IMAGESINORDER       = "images_in_order"
 	JSONIMAGESINORDER   = "json_images_in_order"
 	PLATFORMFORKEYSVIEW = "platform_on_key_count_view"
+	KOKOROLABSURL       = "kokoro_labs_url"
+	DANIELLABSURL       = "daniel_labs_url"
 )
 
 var (

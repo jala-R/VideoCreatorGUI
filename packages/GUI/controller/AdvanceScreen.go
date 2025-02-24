@@ -52,7 +52,7 @@ func AddKeySubmit() {
 }
 
 func ServerUrlChange(url string) {
-	model.AddToDb(model.SERVERURL, url)
+	model.AddToDb(model.APIURL, url)
 }
 
 func TranslationUrlChange(url string) {
@@ -61,6 +61,14 @@ func TranslationUrlChange(url string) {
 
 func ValentinoVoiceUrlChange(url string) {
 	model.AddToDb(model.VALENTINOVOICEURL, url)
+}
+
+func DanielVoiceUrlChange(url string) {
+	model.AddToDb(model.DANIELLABSURL, url)
+}
+
+func KokoroVoiceUrlChange(url string) {
+	model.AddToDb(model.KOKOROLABSURL, url)
 }
 
 func ConfigSubmit() {
