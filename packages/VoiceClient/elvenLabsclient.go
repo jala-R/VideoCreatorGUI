@@ -169,9 +169,7 @@ func (obj *ElevnLabsClient) ConvertVoice(line string, filePath string) error {
 	}
 	defer file.Close()
 
-	convertMp3ToWav(res.Body, file)
-
-	return nil
+	return convertMp3ToWav(res.Body, file, 44100)
 
 }
 

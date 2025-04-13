@@ -71,6 +71,10 @@ func KokoroVoiceUrlChange(url string) {
 	model.AddToDb(model.KOKOROLABSURL, url)
 }
 
+func XttsVoiceUrlChange(url string) {
+	model.AddToDb(model.XTTSLABSURL, url)
+}
+
 func ConfigSubmit() {
 
 }

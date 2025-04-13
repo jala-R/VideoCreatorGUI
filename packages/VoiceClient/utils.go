@@ -11,7 +11,7 @@ import (
 	errorhandling "github.com/jala-R/VideoAutomatorGUI/packages/ErrorHandling"
 )
 
-func convertMp3ToWav(mp3File io.ReadCloser, wavFile *os.File) error {
+func convertMp3ToWav(mp3File io.Reader, wavFile *os.File, sampleRate int) error {
 	mp3Decoder, err := mp3.NewDecoder(mp3File)
 	if err != nil {
 		errorhandling.HandleError(fmt.Errorf("failed to decode MP3: %w", err))
@@ -21,8 +21,8 @@ func convertMp3ToWav(mp3File io.ReadCloser, wavFile *os.File) error {
 	// Prepare PCM buffer
 	pcmData := &audio.IntBuffer{
 		Format: &audio.Format{
-			NumChannels: 1,     // Stereo
-			SampleRate:  44100, // 44.1 kHz
+			NumChannels: 1,          // Stereo
+			SampleRate:  sampleRate, //44100, // 44.1 kHz
 		},
 		Data: make([]int, 0),
 	}

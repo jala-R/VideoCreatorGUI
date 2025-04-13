@@ -34,6 +34,7 @@ func parseKey(key string) []string {
 }
 
 func (obj *PlayHTClient) GetVoices(key string) []string {
+	fmt.Println("getting voices")
 	if key == "" {
 		errorhandling.HandleErrorPop(errors.New("no key in selected profile"))
 		return nil
@@ -59,6 +60,9 @@ func (obj *PlayHTClient) GetVoices(key string) []string {
 	defer res.Body.Close()
 
 	body, _ := io.ReadAll(res.Body)
+
+	fmt.Println(string(body))
+	fmt.Println("got body")
 
 	obj.voiceKey = getAllVoiceDetailsPlayHT(body)
 	return getVoiceOnlyPlayHT(obj.voiceKey)
@@ -225,7 +229,7 @@ func (obj *PlayHTClient) ConvertVoice(line string, filePath string) error {
 	}
 	defer file.Close()
 
-	convertMp3ToWav(res.Body, file)
+	convertMp3ToWav(res.Body, file, 44100)
 	// file.ReadFrom(res.Body)
 
 	return err

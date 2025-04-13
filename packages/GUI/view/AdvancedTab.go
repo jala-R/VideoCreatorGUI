@@ -73,12 +73,17 @@ func configUrls() fyne.CanvasObject {
 	kokoroLabsUrl.SetPlaceHolder("kokoro voice url")
 	kokoroLabsUrl.OnChanged = controller.KokoroVoiceUrlChange
 
+	xttsLabsUrl := widget.NewEntry()
+	xttsLabsUrl.SetPlaceHolder("Xtts voice url")
+	xttsLabsUrl.OnChanged = controller.XttsVoiceUrlChange
+
 	form := widget.NewForm(
 		widget.NewFormItem("Server url", serverUrl),
 		widget.NewFormItem("Transaltion url", transUrl),
 		widget.NewFormItem("Valentino url", valentinoLabsUrl),
 		widget.NewFormItem("Daniel Url", danielLabsUrl),
 		widget.NewFormItem("kokoro Url", kokoroLabsUrl),
+		widget.NewFormItem("Xtts Url", xttsLabsUrl),
 	)
 
 	form.OnSubmit = controller.ConfigSubmit

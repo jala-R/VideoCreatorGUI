@@ -1,6 +1,8 @@
 package view
 
 import (
+	"fmt"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -61,9 +63,12 @@ func createProcessedScriptPage(locale string) fyne.CanvasObject {
 	})
 
 	voiceProfile := widget.NewSelect(profile, func(s string) {
+		fmt.Println("seleicting vopice profile")
 		profileOption = s
+		fmt.Println("Getting key")
 		key := apiclient.GetKey(platform, profileOption)
 		voiceClientInst := voiceclient.VoiceClientDir[platform].New()
+		fmt.Println("voice profile")
 		voices.Options = voiceClientInst.GetVoices(key)
 
 	})
